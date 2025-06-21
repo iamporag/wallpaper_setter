@@ -1,7 +1,9 @@
 name: wallpaper_plugin
 description: "A new Flutter plugin project."
 version: 0.0.1
-homepage:
+homepage: https://github.com/iamporag/wallpaper_plugin
+repository: https://github.com/iamporag/wallpaper_plugin/issues
+license: MIT
 
 environment:
   sdk: ^3.7.2
