@@ -1,12 +1,12 @@
-name: wallpaper_plugin
+name: wallpaper_setter
 description:
   "A Flutter plugin for setting device wallpapers directly from your app.
   Uses the default Android system wallpaper picker UI to set wallpapers from 
   asset or network images for the home screen, lock screen, or both."
 
 version: 0.0.1
-homepage: https://github.com/iamporag/wallpaper_plugin
-repository: https://github.com/iamporag/wallpaper_plugin/issues
+homepage: https://github.com/iamporag/wallpaper_setter
+repository: https://github.com/iamporag/wallpaper_setter/issues
 license: MIT
 
 environment:

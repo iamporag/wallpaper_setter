@@ -1,8 +1,6 @@
-# wallpaper_plugin
+# wallpaper_setter
 
-# wallpaper_plugin
-
-`wallpaper_plugin` is a Flutter plugin that allows you to set wallpapers from a URL or asset on Android devices.  
+`wallpaper_setter` is a Flutter plugin that allows you to set wallpapers from a URL or asset on Android devices.  
 It uses the **default Android system wallpaper picker UI** to set wallpapers for:
 
 - Home screen

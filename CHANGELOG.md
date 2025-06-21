@@ -1,6 +1,6 @@
 ## [0.0.1] - 2025-06-21
 
-🎉 Initial release of `wallpaper_plugin`.
+🎉 Initial release of `wallpaper_setter`.
 
 ### Features:
 - Set device wallpaper from **URL** or **asset image**.
