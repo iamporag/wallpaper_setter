@@ -38,9 +38,14 @@ It uses the **default Android system wallpaper picker UI** to set wallpapers for
  ```
 
 2) include this permission in your manifest
+
+``` dart
+
   <uses-permission android:name="android.permission.SET_WALLPAPER"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+```
 
 3) Inside of Android
    
