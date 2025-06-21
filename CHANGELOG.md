@@ -1,4 +1,7 @@
 ## [0.0.1] - 2025-06-21
+## [0.0.2] - 2025-06-21
+
+- Fixed ReadeMe.Md.
 
 🎉 Initial release of `wallpaper_setter`.
 
