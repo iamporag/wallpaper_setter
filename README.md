@@ -9,7 +9,7 @@ It uses the **default Android system wallpaper picker UI** to set wallpapers for
 
 # Demo
 
-![Demo Animation][assets/demo.gif]
+![Demo Animation](https://raw.githubusercontent.com/iamporag/wallpaper_setter/main/assets/demo.gif)
 
 
 ## 🚀 Getting Started
