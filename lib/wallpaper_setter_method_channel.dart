@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'wallpaper_plugin_platform_interface.dart';
+import 'wallpaper_setter_platform_interface.dart';
 
 /// An implementation of [WallpaperPluginPlatform] that uses method channels.
 class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
@@ -11,7 +11,9 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version = await methodChannel.invokeMethod<String>(
+      'getPlatformVersion',
+    );
     return version;
   }
 }

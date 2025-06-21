@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wallpaper_setter/wallpaper_plugin.dart';
-import 'package:wallpaper_setter/wallpaper_plugin_platform_interface.dart';
-import 'package:wallpaper_setter/wallpaper_plugin_method_channel.dart';
+import 'package:wallpaper_setter/wallpaper_setter.dart';
+import 'package:wallpaper_setter/wallpaper_setter_platform_interface.dart';
+import 'package:wallpaper_setter/wallpaper_setter_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockWallpaperPluginPlatform

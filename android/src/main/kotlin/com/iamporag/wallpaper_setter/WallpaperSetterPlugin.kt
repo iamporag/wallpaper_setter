@@ -1,4 +1,4 @@
-package com.iamporag.wallpaper_plugin
+package com.iamporag.wallpaper_setter
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -13,7 +13,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.io.IOException
 
-class WallpaperPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
+class WallpaperSetterPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
 

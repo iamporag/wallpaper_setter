@@ -1,4 +1,4 @@
-package com.yourcompany.wallpaper_plugin
+package com.yourcompany.wallpaper_setter
 
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel

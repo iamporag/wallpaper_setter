@@ -319,13 +319,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.3.1"
-  wallpaper_plugin:
+  wallpaper_setter:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.2"
   webdriver:
     dependency: transitive
     description:

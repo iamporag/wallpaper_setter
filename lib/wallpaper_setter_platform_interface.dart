@@ -1,6 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'wallpaper_plugin_method_channel.dart';
+import 'wallpaper_setter_method_channel.dart';
 
 abstract class WallpaperPluginPlatform extends PlatformInterface {
   /// Constructs a WallpaperPluginPlatform.

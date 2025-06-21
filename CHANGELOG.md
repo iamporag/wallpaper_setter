@@ -1,7 +1,8 @@
-## [0.0.1] - 2025-06-21
-## [0.0.2] - 2025-06-21
+# [0.0.1] - 2025-06-21
+# [0.0.2] - 2025-06-21
+# [0.0.3] - 2025-06-21
 
-- Fixed ReadeMe.Md.
+- Fixed Package Path and Add Demo.gif
 
 🎉 Initial release of `wallpaper_setter`.
 

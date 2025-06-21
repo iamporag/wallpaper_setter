@@ -1,6 +1,6 @@
-# wallpaper_plugin_example
+# wallpaper_setter_example
 
-Demonstrates how to use the wallpaper_plugin plugin.
+Demonstrates how to use the wallpaper_setter plugin.
 
 ## Getting Started
 

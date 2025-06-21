@@ -7,6 +7,11 @@ It uses the **default Android system wallpaper picker UI** to set wallpapers for
 - Lock screen
 - Or both
 
+# Demo
+
+![Demo Animation][assets/demo.gif]
+
+
 ## 🚀 Getting Started
 
 
@@ -76,7 +81,7 @@ import 'package:flutter/material.dart';
 import 'package:walpaper_demo/home_screen.dart';
 import 'package:walpaper_demo/preview_screen.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:wallpaper_plugin/wallpaper_plugin.dart';
+import 'package:wallpaper_setter/wallpaper_setter.dart';
 
 void main() {
   runApp(const MyApp());
