@@ -1,4 +1,4 @@
-## [1.0.0] - 2025-06-21
+## [0.0.1] - 2025-06-21
 
 - 🎉 Initial release of the `wallpaper_plugin`.
 - ✅ Set wallpapers from asset images.
