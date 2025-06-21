@@ -4,7 +4,7 @@ description:
   Uses the default Android system wallpaper picker UI to set wallpapers from 
   asset or network images for the home screen, lock screen, or both."
 
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/iamporag/wallpaper_setter
 repository: https://github.com/iamporag/wallpaper_setter/issues
 license: MIT
