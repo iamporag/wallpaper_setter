@@ -1,0 +1,22 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '12.0'
+
+# CocoaPods analytics sends network stats. Uncomment to disable
+# ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+# Use frameworks for Swift support
+use_frameworks!
+
+# Include the Flutter Pod
+flutter_application_path = '../..'
+load File.join(flutter_application_path, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
+
+target 'Runner' do
+  install_all_flutter_pods(flutter_application_path)
+end
