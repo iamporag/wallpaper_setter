@@ -42,7 +42,8 @@ class WallpaperSetterPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                         else -> WallpaperManager.FLAG_SYSTEM
                     }
 
-                    val bitmap = BitmapFactory.decodeFile(path)
+                   val bitmap = BitmapFactory.decodeFile(path) 
+                    ?: return result.error("DECODE_FAILED", "Bitmap decode failed", null)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         wallpaperManager.setBitmap(bitmap, null, true, flag)
                     } else {

@@ -126,11 +126,41 @@ class _PreviewScreenState extends State<PreviewScreen> {
   final GlobalKey previewContainer = GlobalKey();
 
   Future<void> _handleSetWallpaper(String target) async {
+    final label =
+        target == "home"
+            ? "Home Screen"
+            : target == "lock"
+            ? "Lock Screen"
+            : "Home & Lock Screen";
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Set Wallpaper"),
+            content: Text("Set as $label wallpaper?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("Set"),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed != true) return;
+
     final success = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
       previewContainer,
       target,
     );
-    _showSnack(success ? 'Wallpaper set!' : 'Failed to set wallpaper');
+
+    if (!mounted) return;
+    _showSnack(success ? '$label wallpaper set!' : 'Failed to set wallpaper');
   }
 
   Future<void> _handleUseAs() async {
