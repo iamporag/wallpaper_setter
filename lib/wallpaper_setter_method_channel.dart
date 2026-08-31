@@ -15,6 +15,56 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('com.iamporag/wallpaper');
 
+  /// Native → Dart channel used to deliver an incoming image URI from an
+  /// external "Use as → Wallpaper" intent.
+  final incomingChannel = const MethodChannel('com.iamporag/wallpaper_incoming');
+
+  IncomingWallpaperCallback? _incomingCallback;
+
+  @override
+  void setIncomingWallpaperHandler(IncomingWallpaperCallback? handler) {
+    _incomingCallback = handler;
+    if (handler != null) {
+      incomingChannel.setMethodCallHandler(_onIncomingCall);
+      // Pick up any URI that arrived before the handler was registered
+      // (e.g. a cold-start intent delivered before the first frame).
+      _pollPendingIncomingImage();
+    } else {
+      incomingChannel.setMethodCallHandler(null);
+    }
+  }
+
+  Future<void> _pollPendingIncomingImage() async {
+    final callback = _incomingCallback;
+    if (callback == null) return;
+    try {
+      final pending = await methodChannel.invokeMethod<String>(
+        'getPendingIncomingImage',
+      );
+      if (pending != null && pending.isNotEmpty) {
+        callback(pending);
+      }
+    } on PlatformException {
+      // Not supported on this platform; ignore.
+    } on MissingPluginException {
+      // Plugin not available in this context (e.g. during tests).
+    }
+  }
+
+  Future<dynamic> _onIncomingCall(MethodCall call) async {
+    switch (call.method) {
+      case 'incomingImage':
+        final uri = call.arguments;
+        final callback = _incomingCallback;
+        if (callback != null && uri is String && uri.isNotEmpty) {
+          callback(uri);
+        }
+        return null;
+      default:
+        throw MissingPluginException(
+            'No handler for incoming method ${call.method}');
+    }
+  }
   @override
   Future<WallpaperCapabilities> getCapabilities() async {
     try {
@@ -118,6 +168,51 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
       );
     }
     return await _setWallpaperBytes(bytes, target, fit: fit);
+  }
+
+  /// Sets the wallpaper from a `content://` URI supplied by an external app.
+  ///
+  /// The URI is read natively (via ContentResolver) — it is never converted to
+  /// a filesystem path, since `content://` URIs generally do not map to a path.
+  @override
+  Future<WallpaperResult> setWallpaperFromUri(
+    String uri,
+    WallpaperTarget target, {
+    WallpaperFit? fit,
+  }) async {
+    try {
+      final raw =
+          await methodChannel.invokeMethod<dynamic>('setWallpaperFromUri', {
+            'uri': uri,
+            'target': target.nativeValue,
+            if (fit != null) 'fit': fit.nativeValue,
+          });
+      if (raw is Map) {
+        return _resultFromMap(raw);
+      }
+      return _resultFromMap({
+        'isSuccess': false,
+        'error': WallpaperError.platformError.nativeValue,
+        'message': 'Failed to set wallpaper from URI.',
+      });
+    } on PlatformException catch (e) {
+      return _resultFromPlatformException(e);
+    }
+  }
+
+  @override
+  Future<Uint8List?> getImageBytesFromUri(String uri) async {
+    try {
+      final bytes = await methodChannel.invokeMethod<Uint8List>(
+        'getImageBytesFromUri',
+        {'uri': uri},
+      );
+      return bytes;
+    } on PlatformException {
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
   }
 
   @override

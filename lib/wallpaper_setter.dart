@@ -7,6 +7,8 @@ import 'wallpaper_setter_models.dart';
 import 'wallpaper_setter_platform_interface.dart';
 
 export 'wallpaper_setter_models.dart';
+export 'wallpaper_setter_platform_interface.dart'
+    show IncomingWallpaperCallback;
 
 /// Entry point for setting device wallpapers.
 ///
@@ -67,6 +69,27 @@ class WallpaperPlugin {
         .setWallpaperFromUrl(url, target, fit: fit);
   }
 
+  /// Sets the wallpaper from a `content://` [uri] supplied by an external app
+  /// (e.g. selected via Photos "Use as → Wallpaper").
+  ///
+  /// [fit] optionally scales the image to the screen before it is applied.
+  static Future<WallpaperResult> setWallpaperFromUri(
+    String uri,
+    WallpaperTarget target, {
+    WallpaperFit? fit,
+  }) {
+    return WallpaperPluginPlatform.instance
+        .setWallpaperFromUri(uri, target, fit: fit);
+  }
+
+  /// Reads the encoded image bytes referenced by a `content://` [uri] that was
+  /// handed to this app by an external app. Returns `null` if the URI is
+  /// unreadable (for example if the granting app's read permission has already
+  /// expired).
+  static Future<Uint8List?> getImageBytesFromUri(String uri) {
+    return WallpaperPluginPlatform.instance.getImageBytesFromUri(uri);
+  }
+
   /// Sets the wallpaper from raw encoded image [bytes] (JPEG/PNG).
   ///
   /// [fit] optionally scales the image to the screen before it is applied.
@@ -96,5 +119,17 @@ class WallpaperPlugin {
   /// Returns basic screen / wallpaper information when reliably available.
   static Future<WallpaperScreenInfo> getScreenInfo() {
     return WallpaperPluginPlatform.instance.getScreenInfo();
+  }
+
+  /// Registers a callback invoked when an external app (Photos/Gallery) hands
+  /// this app an image through the Android "Use as → Wallpaper" flow.
+  ///
+  /// The [callback] receives a `content://` URI referencing the selected image,
+  /// which is only readable while the grant from the originating app remains
+  /// valid. Read the bytes promptly and do not try to convert the URI into a
+  /// filesystem path. Pass `null` to stop receiving callbacks.
+  static void setIncomingWallpaperHandler(IncomingWallpaperCallback? callback) {
+    WallpaperPluginPlatform.instance
+        .setIncomingWallpaperHandler(callback);
   }
 }

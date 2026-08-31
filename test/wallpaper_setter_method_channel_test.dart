@@ -48,7 +48,10 @@ void main() {
                 'orientation': 'portrait',
               };
             case 'setWallpaper':
-              return {'isSuccess': true, 'message': 'Wallpaper set successfully.'};
+              return {
+                'isSuccess': true,
+                'message': 'Wallpaper set successfully.',
+              };
             default:
               return null;
           }
@@ -92,39 +95,46 @@ void main() {
     expect(caps.supportsWallpaperSetting, isFalse);
   });
 
-  test('setWallpaperFromBytes with empty bytes fails with invalidImage',
-      () async {
-    final result = await plugin.setWallpaperFromBytes(
-      Uint8List(0),
-      WallpaperTarget.home,
-    );
+  test(
+    'setWallpaperFromBytes with empty bytes fails with invalidImage',
+    () async {
+      final result = await plugin.setWallpaperFromBytes(
+        Uint8List(0),
+        WallpaperTarget.home,
+      );
 
-    expect(result.isSuccess, isFalse);
-    expect(result.error, WallpaperError.invalidImage);
-    expect(tempDir.listSync(), isEmpty);
-  });
+      expect(result.isSuccess, isFalse);
+      expect(result.error, WallpaperError.invalidImage);
+      expect(tempDir.listSync(), isEmpty);
+    },
+  );
 
-  test('setWallpaperFromBytes forwards target and passes through success',
-      () async {
-    final seen = <String>[];
+  test(
+    'setWallpaperFromBytes forwards target and passes through success',
+    () async {
+      final seen = <String>[];
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall call) async {
-          seen.add(call.method);
-          expect(call.arguments['target'], 'lock');
-          expect(call.arguments['path'], isA<String>());
-          return {'isSuccess': true, 'message': 'Wallpaper set successfully.'};
-        });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+            seen.add(call.method);
+            expect(call.arguments['target'], 'lock');
+            expect(call.arguments['path'], isA<String>());
+            return {
+              'isSuccess': true,
+              'message': 'Wallpaper set successfully.',
+            };
+          });
 
-    final result = await plugin.setWallpaperFromBytes(
-      bytes,
-      WallpaperTarget.lock,
-    );
+      final result = await plugin.setWallpaperFromBytes(
+        bytes,
+        WallpaperTarget.lock,
+      );
 
-    expect(seen, ['setWallpaper']);
-    expect(result.isSuccess, isTrue);
-    expect(result.error, isNull);
-  });
+      expect(seen, ['setWallpaper']);
+      expect(result.isSuccess, isTrue);
+      expect(result.error, isNull);
+    },
+  );
 
   test('setWallpaperFromBytes cleans up the temporary file', () async {
     await plugin.setWallpaperFromBytes(bytes, WallpaperTarget.home);
@@ -175,8 +185,8 @@ void main() {
   });
 
   test('setWallpaperFromFile with existing file succeeds', () async {
-    final sourceFile =
-        File('${tempDir.path}/source.png')..writeAsBytesSync([1, 2, 3]);
+    final sourceFile = File('${tempDir.path}/source.png')
+      ..writeAsBytesSync([1, 2, 3]);
 
     final result = await plugin.setWallpaperFromFile(
       sourceFile,
@@ -184,24 +194,27 @@ void main() {
     );
 
     expect(result.isSuccess, isTrue);
-    final leftover =
-        tempDir.listSync().whereType<File>().map((f) => f.path).where(
-          (p) => p.endsWith('_wallpaper.png'),
-        );
+    final leftover = tempDir
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.path)
+        .where((p) => p.endsWith('_wallpaper.png'));
     expect(leftover, isEmpty);
   });
 
-  test('setWallpaperFromUrl surfaces a WallpaperResult instead of throwing',
-      () async {
-    final result = await plugin.setWallpaperFromUrl(
-      'https://example.com/wallpaper.png',
-      WallpaperTarget.both,
-    );
+  test(
+    'setWallpaperFromUrl surfaces a WallpaperResult instead of throwing',
+    () async {
+      final result = await plugin.setWallpaperFromUrl(
+        'https://example.com/wallpaper.png',
+        WallpaperTarget.both,
+      );
 
-    expect(result, isA<WallpaperResult>());
-    expect(result.isSuccess, isFalse);
-    expect(result.error, WallpaperError.networkError);
-  });
+      expect(result, isA<WallpaperResult>());
+      expect(result.isSuccess, isFalse);
+      expect(result.error, WallpaperError.networkError);
+    },
+  );
 
   test('maps PlatformException code to the matching WallpaperError', () async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

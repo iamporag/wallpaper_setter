@@ -39,6 +39,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final Future<WallpaperCapabilities> _capabilitiesFuture;
+
   final List<_WallpaperItem> _items = const [
     _WallpaperItem(
       'Nature',
@@ -85,11 +87,46 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _capabilitiesFuture = WallpaperPlugin.getCapabilities();
+    WallpaperPlugin.setIncomingWallpaperHandler(_onIncomingWallpaper);
+  }
+
+  @override
+  void dispose() {
+    WallpaperPlugin.setIncomingWallpaperHandler(null);
+    super.dispose();
+  }
+
+  void _onIncomingWallpaper(String imageUri) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => PreviewScreen(
+              initialUri: imageUri,
+              capabilities: WallpaperCapabilities(
+                supportsHome: true,
+                supportsLock: true,
+                supportsBoth: true,
+                supportsCapturedWidget: true,
+                supportsDirectImageSources: true,
+              ),
+            ),
+      ),
+    );
+    messenger.hideCurrentSnackBar();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Select a Wallpaper')),
       body: FutureBuilder<WallpaperCapabilities>(
-        future: WallpaperPlugin.getCapabilities(),
+        future: _capabilitiesFuture,
         builder: (context, snapshot) {
           final caps = snapshot.data ?? WallpaperCapabilities.none;
           return GridView.builder(
@@ -199,11 +236,16 @@ class PreviewScreen extends StatefulWidget {
   const PreviewScreen({
     super.key,
     this.url,
+    this.initialUri,
     required this.capabilities,
     this.isLocal = false,
-  }) : assert(url != null || isLocal);
+  }) : assert(url != null || isLocal || initialUri != null);
 
   final String? url;
+
+  /// A `content://` URI received from an external "Use as → Wallpaper" intent.
+  final String? initialUri;
+
   final WallpaperCapabilities capabilities;
 
   /// When true, the bundled `assets/demo_wallpaper.png` is used as the source.
@@ -213,16 +255,62 @@ class PreviewScreen extends StatefulWidget {
   State<PreviewScreen> createState() => _PreviewScreenState();
 }
 
-class _PreviewScreenState extends State<PreviewScreen> {
+class _PreviewScreenState extends State<PreviewScreen>
+    with WidgetsBindingObserver {
   final GlobalKey previewContainer = GlobalKey();
   bool _loading = false;
   Uint8List? _localBytes;
 
+  bool _useAsLaunched = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.isLocal) {
       _loadLocalBytes();
+    }
+    if (widget.initialUri != null) {
+      _pollIncomingUri();
+    }
+  }
+
+  Future<void> _pollIncomingUri() async {
+    // The content:// grant from the sending app is transient. Reading it as
+    // soon as possible avoids losing the image if the grant expires.
+    final uri = widget.initialUri;
+    if (uri == null) return;
+    try {
+      final bytes = await _readUriBytes(uri);
+      if (!mounted || bytes.isEmpty) return;
+      setState(() => _localBytes = bytes);
+    } catch (e) {
+      debugPrint('Failed to read incoming image URI: $e');
+    }
+  }
+
+  Future<Uint8List> _readUriBytes(String uri) async {
+    final result = await WallpaperPlugin.getImageBytesFromUri(uri);
+    if (result == null) {
+      throw StateError('Could not read image from content URI');
+    }
+    return result;
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _useAsLaunched && mounted) {
+      _useAsLaunched = false;
+      final messengerState = ScaffoldMessenger.maybeOf(context);
+      messengerState?.showSnackBar(
+        const SnackBar(content: Text('Sharing launched!')),
+      );
     }
   }
 
@@ -233,10 +321,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
   }
 
   ImageProvider? get _imageProvider {
-    if (widget.isLocal) {
-      final bytes = _localBytes;
-      if (bytes == null) return null;
+    final bytes = _localBytes;
+    if (bytes != null) {
       return MemoryImage(bytes);
+    }
+    if (widget.initialUri != null) {
+      // Awaiting the async read of the incoming content:// image.
+      return null;
+    }
+    if (widget.isLocal) {
+      return null;
     }
     return NetworkImage(widget.url!);
   }
@@ -245,22 +339,30 @@ class _PreviewScreenState extends State<PreviewScreen> {
     Future<WallpaperResult> Function() action,
     String successMessage,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _loading = true);
-    final result = await action();
-    if (!mounted) return;
-    setState(() => _loading = false);
+    try {
+      final result = await action();
+      if (!mounted) return;
+      setState(() => _loading = false);
 
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    if (result.isSuccess) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(result.message ?? successMessage)),
-      );
-    } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('${result.message ?? 'Failed'}: ${result.error?.name}'),
-        ),
-      );
+      if (result.isSuccess) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(result.message ?? successMessage)),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.message ?? 'Failed'}: ${result.error?.name}',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      messenger.showSnackBar(SnackBar(content: Text('Unexpected error: $e')));
     }
   }
 
@@ -283,22 +385,51 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
+  Future<void> _setFromUri() {
+    final uri = widget.initialUri;
+    if (uri == null) return Future.value();
+    return _run(
+      () => WallpaperPlugin.setWallpaperFromUri(uri, WallpaperTarget.both),
+      'Wallpaper set from incoming image!',
+    );
+  }
+
   Future<void> _setFromFile() async {
     final data = await rootBundle.load('assets/demo_wallpaper.png');
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/demo_wallpaper.png');
-    await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+    await file.writeAsBytes(data.buffer.asUint8List());
     return _run(
       () => WallpaperPlugin.setWallpaperFromFile(file, WallpaperTarget.home),
       'Wallpaper set from file!',
     );
   }
 
-  Future<void> _useAs() {
-    return _run(
-      () => WallpaperPlugin.useAsImageFromRepaintBoundary(previewContainer),
-      'Sharing launched!',
-    );
+  Future<void> _useAs() async {
+    if (_loading) return; // guard against double-tap / re-entrant redirects
+    setState(() => _loading = true);
+    try {
+      final result = await WallpaperPlugin.useAsImageFromRepaintBoundary(
+        previewContainer,
+      );
+      if (!mounted) return;
+      setState(() => _loading = false);
+
+      if (result.isSuccess) {
+        _useAsLaunched = true;
+      } else {
+        _showSnack('${result.message ?? 'Failed'}: ${result.error?.name}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      _showSnack('Unexpected error: $e');
+    }
+  }
+
+  void _showSnack(String text) {
+    final messengerState = ScaffoldMessenger.maybeOf(context);
+    messengerState?.showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -383,6 +514,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
                               onPressed: _setFromUrl,
                               icon: const Icon(Icons.link),
                               label: const Text('Set from URL (Both)'),
+                            ),
+                          ],
+                          if (widget.initialUri != null) ...[
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: _setFromUri,
+                              icon: const Icon(Icons.wallpaper),
+                              label: const Text(
+                                'Set from incoming image (Both)',
+                              ),
                             ),
                           ],
                           if (widget.isLocal) ...[

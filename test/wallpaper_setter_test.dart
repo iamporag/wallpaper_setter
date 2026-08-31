@@ -70,6 +70,21 @@ class MockWallpaperPluginPlatform extends MockPlatformInterfaceMixin
   Future<WallpaperScreenInfo> getScreenInfo() async {
     return const WallpaperScreenInfo(width: 100, height: 200);
   }
+
+  @override
+  Future<WallpaperResult> setWallpaperFromUri(
+    String uri,
+    WallpaperTarget target, {
+    WallpaperFit? fit,
+  }) async {
+    return const WallpaperResult.success(message: 'uri');
+  }
+
+  @override
+  Future<Uint8List?> getImageBytesFromUri(String uri) async => null;
+
+  @override
+  void setIncomingWallpaperHandler(IncomingWallpaperCallback? handler) {}
 }
 
 void main() {
