@@ -1,5 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:wallpaper_setter/wallpaper_setter.dart';
 
@@ -21,91 +25,114 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class _WallpaperItem {
+  const _WallpaperItem(this.title, this.url);
+  final String title;
+  final String? url;
+}
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  final List<Map<String, String>> dummyImageList = const [
-    {
-      "id": "1",
-      "title": "Nature",
-      "url": "https://picsum.photos/seed/1/800/1200",
-    },
-    {
-      "id": "2",
-      "title": "City",
-      "url": "https://picsum.photos/seed/2/800/1200",
-    },
-    {
-      "id": "3",
-      "title": "Mountains",
-      "url": "https://picsum.photos/seed/3/800/1200",
-    },
-    {
-      "id": "4",
-      "title": "Beach",
-      "url": "https://picsum.photos/seed/4/800/1200",
-    },
-    {
-      "id": "5",
-      "title": "Forest",
-      "url": "https://picsum.photos/seed/5/800/1200",
-    },
-    {
-      "id": "6",
-      "title": "Desert",
-      "url": "https://picsum.photos/seed/6/800/1200",
-    },
-    {
-      "id": "7",
-      "title": "Snow",
-      "url": "https://picsum.photos/seed/7/800/1200",
-    },
-    {
-      "id": "8",
-      "title": "River",
-      "url": "https://picsum.photos/seed/8/800/1200",
-    },
-    {
-      "id": "9",
-      "title": "Sunset",
-      "url": "https://picsum.photos/seed/9/800/1200",
-    },
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<_WallpaperItem> _items = const [
+    _WallpaperItem(
+      'Nature',
+      'https://img.freepik.com/free-photo/'
+          'gorgeous-view-calm-lake-surrounded-by-mountains-daylight_181624-48879.jpg',
+    ),
+    _WallpaperItem(
+      'Mountains',
+      'https://img.freepik.com/free-photo/'
+          'majestic-mountain-peak-tranquil-wilderness-scenery-generative-ai_188544-9950.jpg',
+    ),
+    _WallpaperItem(
+      'Grand Teton',
+      'https://img.freepik.com/free-photo/'
+          'beautiful-landscape-grand-teton-national-park-wyoming-united-states_181624-60981.jpg',
+    ),
+    _WallpaperItem(
+      'Patagonia',
+      'https://img.freepik.com/free-photo/'
+          'breathtaking-view-snowy-mountains-cloudy-sky-patagonia-chile_181624-9696.jpg',
+    ),
+    _WallpaperItem(
+      'Bamboo',
+      'https://img.freepik.com/free-photo/'
+          'beautiful-landscape-bamboo-grove-forest-arashiyama-kyoto_74190-16.jpg',
+    ),
+    _WallpaperItem(
+      'Beach',
+      'https://img.freepik.com/free-photo/tropical-beach-ocean-paradise_1203-2044.jpg',
+    ),
+    _WallpaperItem(
+      'Starry Night',
+      'https://img.freepik.com/free-photo/starry-sky-night-mountain-landscape_1048-2670.jpg',
+    ),
+    _WallpaperItem(
+      'Milky Way',
+      'https://img.freepik.com/free-photo/milky-way-night-sky-stars_1048-4658.jpg',
+    ),
+    _WallpaperItem(
+      'Sunset',
+      'https://img.freepik.com/free-photo/'
+          'purple-sunset-mountain-illustration_23-2148743473.jpg',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Select a Dummy Image")),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 images per row
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.75, // taller images for full-screen feel
-        ),
-        itemCount: dummyImageList.length,
-        itemBuilder: (context, index) {
-          final item = dummyImageList[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PreviewScreen(imagePath: item['url']!),
-                ),
+      appBar: AppBar(title: const Text('Select a Wallpaper')),
+      body: FutureBuilder<WallpaperCapabilities>(
+        future: WallpaperPlugin.getCapabilities(),
+        builder: (context, snapshot) {
+          final caps = snapshot.data ?? WallpaperCapabilities.none;
+          return GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: _items.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return _LocalFileCard(
+                  onTap:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => PreviewScreen(
+                                capabilities: caps,
+                                isLocal: true,
+                              ),
+                        ),
+                      ),
+                );
+              }
+              final item = _items[index - 1];
+              return _NetworkCard(
+                item: item,
+                onTap:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => PreviewScreen(
+                              url: item.url!,
+                              capabilities: caps,
+                            ),
+                      ),
+                    ),
               );
             },
-            child: GridTile(
-              footer: GridTileBar(
-                backgroundColor: Colors.black54,
-                title: Text(item['title']!),
-              ),
-              child: Image.network(
-                item['url']!,
-                fit: BoxFit.cover, // fill the grid tile
-              ),
-            ),
           );
         },
       ),
@@ -113,10 +140,74 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class PreviewScreen extends StatefulWidget {
-  final String imagePath;
+class _LocalFileCard extends StatelessWidget {
+  const _LocalFileCard({required this.onTap});
+  final VoidCallback onTap;
 
-  const PreviewScreen({super.key, required this.imagePath});
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.sd_storage, size: 48, color: Colors.deepPurple),
+            SizedBox(height: 8),
+            Text('Demo File'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NetworkCard extends StatelessWidget {
+  const _NetworkCard({required this.item, required this.onTap});
+  final _WallpaperItem item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GridTile(
+        footer: GridTileBar(
+          backgroundColor: Colors.black54,
+          title: Text(item.title),
+        ),
+        child: Image.network(
+          item.url!,
+          fit: BoxFit.cover,
+          errorBuilder:
+              (context, error, stackTrace) => const ColoredBox(
+                color: Colors.black26,
+                child: Icon(
+                  Icons.broken_image,
+                  color: Colors.white70,
+                  size: 48,
+                ),
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+class PreviewScreen extends StatefulWidget {
+  const PreviewScreen({
+    super.key,
+    this.url,
+    required this.capabilities,
+    this.isLocal = false,
+  }) : assert(url != null || isLocal);
+
+  final String? url;
+  final WallpaperCapabilities capabilities;
+
+  /// When true, the bundled `assets/demo_wallpaper.png` is used as the source.
+  final bool isLocal;
 
   @override
   State<PreviewScreen> createState() => _PreviewScreenState();
@@ -124,110 +215,120 @@ class PreviewScreen extends StatefulWidget {
 
 class _PreviewScreenState extends State<PreviewScreen> {
   final GlobalKey previewContainer = GlobalKey();
+  bool _loading = false;
+  Uint8List? _localBytes;
 
-  Future<void> _handleSetWallpaper(String target) async {
-    final label =
-        target == "home"
-            ? "Home Screen"
-            : target == "lock"
-            ? "Lock Screen"
-            : "Home & Lock Screen";
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isLocal) {
+      _loadLocalBytes();
+    }
+  }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("Set Wallpaper"),
-            content: Text("Set as $label wallpaper?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text("Set"),
-              ),
-            ],
-          ),
-    );
-
-    if (confirmed != true) return;
-
-    final success = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
-      previewContainer,
-      target,
-    );
-
+  Future<void> _loadLocalBytes() async {
+    final data = await rootBundle.load('assets/demo_wallpaper.png');
     if (!mounted) return;
-    _showSnack(success ? '$label wallpaper set!' : 'Failed to set wallpaper');
+    setState(() => _localBytes = data.buffer.asUint8List());
   }
 
-  Future<void> _handleUseAs() async {
-    final success = await WallpaperPlugin.useAsImageFromRepaintBoundary(
-      previewContainer,
+  ImageProvider? get _imageProvider {
+    if (widget.isLocal) {
+      final bytes = _localBytes;
+      if (bytes == null) return null;
+      return MemoryImage(bytes);
+    }
+    return NetworkImage(widget.url!);
+  }
+
+  Future<void> _run(
+    Future<WallpaperResult> Function() action,
+    String successMessage,
+  ) async {
+    setState(() => _loading = true);
+    final result = await action();
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    if (result.isSuccess) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(result.message ?? successMessage)),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${result.message ?? 'Failed'}: ${result.error?.name}'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _setFromRepaintBoundary(WallpaperTarget target) {
+    return _run(
+      () => WallpaperPlugin.setWallpaperFromRepaintBoundary(
+        previewContainer,
+        target,
+      ),
+      'Wallpaper set!',
     );
-    _showSnack(success ? 'Sharing launched!' : 'Use As failed');
   }
 
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _setFromUrl() {
+    final url = widget.url;
+    if (url == null) return Future.value();
+    return _run(
+      () => WallpaperPlugin.setWallpaperFromUrl(url, WallpaperTarget.both),
+      'Wallpaper set from URL!',
+    );
+  }
+
+  Future<void> _setFromFile() async {
+    final data = await rootBundle.load('assets/demo_wallpaper.png');
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/demo_wallpaper.png');
+    await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+    return _run(
+      () => WallpaperPlugin.setWallpaperFromFile(file, WallpaperTarget.home),
+      'Wallpaper set from file!',
+    );
+  }
+
+  Future<void> _useAs() {
+    return _run(
+      () => WallpaperPlugin.useAsImageFromRepaintBoundary(previewContainer),
+      'Sharing launched!',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final canSet = widget.capabilities.supportsWallpaperSetting;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          RepaintBoundary(
-            key: previewContainer,
-            child: SizedBox.expand(
-              child: PhotoView(
-                imageProvider:
-                    widget.imagePath.startsWith("http")
-                        ? NetworkImage(widget.imagePath)
-                        : FileImage(File(widget.imagePath)) as ImageProvider,
-                backgroundDecoration: const BoxDecoration(color: Colors.black),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 2,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (!Platform.isIOS) ...[
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("home"),
-                    child: const Text("Set as Home Screen"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("lock"),
-                    child: const Text("Set as Lock Screen"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("both"),
-                    child: const Text("Set Both"),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                ElevatedButton.icon(
-                  onPressed: () => _handleUseAs(),
-                  icon: const Icon(Icons.share),
-                  label: const Text("Use As..."),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                  ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: RepaintBoundary(
+              key: previewContainer,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox.expand(
+                  child:
+                      _imageProvider == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : PhotoView(
+                            imageProvider: _imageProvider!,
+                            backgroundDecoration: const BoxDecoration(
+                              color: Colors.black,
+                            ),
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 2,
+                          ),
                 ),
-              ],
+              ),
             ),
           ),
           Positioned(
@@ -237,6 +338,84 @@ class _PreviewScreenState extends State<PreviewScreen> {
               icon: const Icon(Icons.close, color: Colors.white, size: 30),
               onPressed: () => Navigator.pop(context),
             ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 16,
+            right: 16,
+            child:
+                _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (canSet) ...[
+                          ElevatedButton(
+                            onPressed:
+                                () => _setFromRepaintBoundary(
+                                  WallpaperTarget.home,
+                                ),
+                            child: const Text('Set as Home Screen'),
+                          ),
+                          const SizedBox(height: 8),
+                          if (widget.capabilities.supportsLock)
+                            ElevatedButton(
+                              onPressed:
+                                  () => _setFromRepaintBoundary(
+                                    WallpaperTarget.lock,
+                                  ),
+                              child: const Text('Set as Lock Screen'),
+                            ),
+                          if (widget.capabilities.supportsBoth) ...[
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed:
+                                  () => _setFromRepaintBoundary(
+                                    WallpaperTarget.both,
+                                  ),
+                              child: const Text('Set Both'),
+                            ),
+                          ],
+                          if (widget.url != null) ...[
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: _setFromUrl,
+                              icon: const Icon(Icons.link),
+                              label: const Text('Set from URL (Both)'),
+                            ),
+                          ],
+                          if (widget.isLocal) ...[
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: _setFromFile,
+                              icon: const Icon(Icons.folder_open),
+                              label: const Text('Set from File (Home)'),
+                            ),
+                          ],
+                          const SizedBox(height: 10),
+                        ] else ...[
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Wallpaper cannot be set programmatically on this platform. '
+                              'Use the share option below.',
+                              style: TextStyle(color: Colors.white70),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                        ElevatedButton.icon(
+                          onPressed: _useAs,
+                          icon: const Icon(Icons.share),
+                          label: const Text('Use As...'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
           ),
         ],
       ),
