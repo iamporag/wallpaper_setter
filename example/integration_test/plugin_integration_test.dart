@@ -7,10 +7,9 @@ import 'package:wallpaper_setter/wallpaper_setter.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('setWallpaperFromRepaintBoundary returns bool', (
+  testWidgets('setWallpaperFromRepaintBoundary returns a WallpaperResult', (
     WidgetTester tester,
   ) async {
-    // এখানে একটা dummy widget বানাচ্ছি যা capture করা যাবে
     final GlobalKey boundaryKey = GlobalKey();
 
     await tester.pumpWidget(
@@ -22,13 +21,11 @@ void main() {
       ),
     );
 
-    // ওয়ালপেপার সেট করার মেথড কল করো
-    final success = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
+    final result = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
       boundaryKey,
-      'home',
+      WallpaperTarget.home,
     );
 
-    // ফলাফল bool হবে, তাই আমরা assert করবো সেটা boolean এবং true/false যেকোনো হতে পারে
-    expect(success, isA<bool>());
+    expect(result, isA<WallpaperResult>());
   });
 }

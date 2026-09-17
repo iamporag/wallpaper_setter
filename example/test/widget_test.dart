@@ -1,27 +1,35 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wallpaper_setter_example/main.dart';
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Home screen renders the wallpaper grid', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
+    await tester.pump();
 
-    // Verify that platform version is retrieved.
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Text && widget.data!.startsWith('Running on:'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Select a Wallpaper'), findsOneWidget);
+    expect(find.byType(GridView), findsOneWidget);
+    expect(find.text('Demo File'), findsOneWidget);
+    expect(find.text('Nature'), findsOneWidget);
+  });
+
+  testWidgets('Tapping a wallpaper opens the preview screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pump();
+
+    await tester.tap(find.text('Demo File'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // In a widget test the platform channel is unavailable, so capabilities
+    // report "none" and the app shows the platform-aware fallback UI.
+    expect(find.text('Use As...'), findsOneWidget);
+    expect(find.textContaining('cannot be set programmatically'), findsOneWidget);
   });
 }

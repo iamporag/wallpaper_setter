@@ -1,311 +1,333 @@
 # wallpaper_setter
 
-`wallpaper_setter` is a Flutter plugin that allows you to set wallpapers from a URL or asset on Android devices.  
-It uses the **default Android system wallpaper picker UI** to set wallpapers for:
+A lightweight Flutter plugin for **setting device wallpapers** and **using images as wallpapers / shares**.
 
-### ANDROID
-- Home screen
-- Lock screen
-- Or both
+`wallpaper_setter` turns your image sources — **file**, **URL**, **raw bytes**, or a captured **RepaintBoundary** — into a device wallpaper with a simple, type-safe API.
 
-### IOS
-- Only Use "Use As..."
+- ✅ **Android** — set Home screen, Lock screen, or Both
+- ⚠️ **iOS** — wallpapers cannot be set programmatically (Apple restriction); the plugin returns a clear `unsupported` result and provides a **Use As...** share flow instead
+- 🧱 No magic strings, no boilerplate, result-based error handling
 
-# Demo
+---
 
-![Demo Animation](https://raw.githubusercontent.com/iamporag/wallpaper_setter/main/assets/demo.gif)
+## Features
 
+| API | Purpose |
+| --- | --- |
+| `setWallpaperFromFile` | Set wallpaper from a local `File` |
+| `setWallpaperFromUrl` | Download and set wallpaper from a network URL |
+| `setWallpaperFromBytes` | Set wallpaper from raw JPEG/PNG `Uint8List` |
+| `setWallpaperFromRepaintBoundary` | Capture any widget and set it as wallpaper |
+| `useAsImageFromRepaintBoundary` | Share / export a widget via the system share sheet |
+| `getCapabilities` | Query what the current platform genuinely supports |
+| `getScreenInfo` | Read reliable screen width/height/density/orientation |
+| `WallpaperTarget` | Type-safe target: `home`, `lock`, or `both` |
+| `WallpaperFit` | Optional `cover` / `contain` / `fill` scaling |
+| `WallpaperResult` | Structured success/failure outcomes |
 
-## 🚀 Getting Started
+---
 
+## Installation
 
-1) For using System Wallpaper you will need to add file_paths.xml in xml folder
-   android\app\src\main\res\xml\file_paths.xml where downloaded image will be stored. 
-   and Code is Here...
-
-``` dart
-
-
-   <?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path
-        name="cache"
-        path="." />
-    <external-path
-        name="external_files"
-        path="." />
-    <external-files-path
-        name="external_files"
-        path="." />
-    <files-path
-        name="files"
-        path="." />
-</paths>
-
-
-
- ```
-
-2) include this permission in your manifest
-
-``` dart
-
-  <uses-permission android:name="android.permission.SET_WALLPAPER"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
+```yaml
+dependencies:
+  wallpaper_setter: ^2.0.0
 ```
 
-3) Inside of Android
-   
-       <application
-       ...old code
-    
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-            android:name="android.support.FILE_PROVIDER_PATHS"
-            android:resource="@xml/file_paths" />
-        </provider>
+Then:
 
-        ...old code
-    </application>
+```bash
+flutter pub get
+```
 
+### Android
 
-4) also make sure you have internet connection on device.
-### Example
+No manual setup is required. The plugin bundles:
 
+- The `SET_WALLPAPER` permission in its own manifest
+- Its own `FileProvider` (`${applicationId}.wallpaper_setter.fileprovider`)
+- A safe `file_paths.xml`
 
-``` dart
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
+> You no longer need to add permissions, a provider, or `file_paths.xml` to your app's manifest (required in v1.x).
+
+### iOS
+
+No setup required. Wallpaper-setting APIs are not available — the plugin detects this and returns an `unsupported` result. The **Use As...** share flow works out of the box.
+
+---
+
+## Quick Start
+
+```dart
 import 'package:wallpaper_setter/wallpaper_setter.dart';
 
-void main() {
-  runApp(const MyApp());
+// Check what this platform supports before showing buttons.
+final capabilities = await WallpaperPlugin.getCapabilities();
+
+if (capabilities.supportsHome) {
+  // ...
 }
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wallpaper App',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
-      home: const HomeScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  final List<Map<String, String>> dummyImageList = const [
-    {
-      "id": "1",
-      "title": "Nature",
-      "url": "https://picsum.photos/seed/1/800/1200",
-    },
-    {
-      "id": "2",
-      "title": "City",
-      "url": "https://picsum.photos/seed/2/800/1200",
-    },
-    {
-      "id": "3",
-      "title": "Mountains",
-      "url": "https://picsum.photos/seed/3/800/1200",
-    },
-    {
-      "id": "4",
-      "title": "Beach",
-      "url": "https://picsum.photos/seed/4/800/1200",
-    },
-    {
-      "id": "5",
-      "title": "Forest",
-      "url": "https://picsum.photos/seed/5/800/1200",
-    },
-    {
-      "id": "6",
-      "title": "Desert",
-      "url": "https://picsum.photos/seed/6/800/1200",
-    },
-    {
-      "id": "7",
-      "title": "Snow",
-      "url": "https://picsum.photos/seed/7/800/1200",
-    },
-    {
-      "id": "8",
-      "title": "River",
-      "url": "https://picsum.photos/seed/8/800/1200",
-    },
-    {
-      "id": "9",
-      "title": "Sunset",
-      "url": "https://picsum.photos/seed/9/800/1200",
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Select a Dummy Image")),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 images per row
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.75, // taller images for full-screen feel
-        ),
-        itemCount: dummyImageList.length,
-        itemBuilder: (context, index) {
-          final item = dummyImageList[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PreviewScreen(imagePath: item['url']!),
-                ),
-              );
-            },
-            child: GridTile(
-              footer: GridTileBar(
-                backgroundColor: Colors.black54,
-                title: Text(item['title']!),
-              ),
-              child: Image.network(
-                item['url']!,
-                fit: BoxFit.cover, // fill the grid tile
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class PreviewScreen extends StatefulWidget {
-  final String imagePath;
-
-  const PreviewScreen({super.key, required this.imagePath});
-
-  @override
-  State<PreviewScreen> createState() => _PreviewScreenState();
-}
-
-class _PreviewScreenState extends State<PreviewScreen> {
-  final GlobalKey previewContainer = GlobalKey();
-
-  Future<void> _handleSetWallpaper(String target) async {
-    final success = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
-      previewContainer,
-      target,
-    );
-    _showSnack(success ? 'Wallpaper set!' : 'Failed to set wallpaper');
-  }
-
-  Future<void> _handleUseAs() async {
-    final success = await WallpaperPlugin.useAsImageFromRepaintBoundary(
-      previewContainer,
-    );
-    _showSnack(success ? 'Sharing launched!' : 'Use As failed');
-  }
-
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          RepaintBoundary(
-            key: previewContainer,
-            child: SizedBox.expand(
-              child: PhotoView(
-                imageProvider:
-                    widget.imagePath.startsWith("http")
-                        ? NetworkImage(widget.imagePath)
-                        : FileImage(File(widget.imagePath)) as ImageProvider,
-                backgroundDecoration: const BoxDecoration(color: Colors.black),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 2,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (!Platform.isIOS) ...[
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("home"),
-                    child: const Text("Set as Home Screen"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("lock"),
-                    child: const Text("Set as Lock Screen"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _handleSetWallpaper("both"),
-                    child: const Text("Set Both"),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                ElevatedButton.icon(
-                  onPressed: () => _handleUseAs(),
-                  icon: const Icon(Icons.share),
-                  label: const Text("Use As..."),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 40,
-            left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 30),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-
 ```
-## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.io/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android.
+### Set wallpaper from a URL
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.io/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```dart
+final result = await WallpaperPlugin.setWallpaperFromUrl(
+  'https://example.com/wallpaper.jpg',
+  target: WallpaperTarget.home,
+);
+
+if (result.isSuccess) {
+  // Wallpaper applied.
+} else {
+  // result.error is a WallpaperError, result.message is human readable.
+  print('Failed: ${result.error} - ${result.message}');
+}
+```
+
+### Set wallpaper from a file
+
+```dart
+import 'dart:io';
+
+final result = await WallpaperPlugin.setWallpaperFromFile(
+  File('/path/to/image.png'),
+  target: WallpaperTarget.lock,
+);
+```
+
+### Set wallpaper from bytes
+
+```dart
+final Uint8List bytes; // e.g. downloaded, decoded, or generated JPEG/PNG data
+
+final result = await WallpaperPlugin.setWallpaperFromBytes(
+  bytes,
+  target: WallpaperTarget.both,
+);
+```
+
+### Set wallpaper from a RepaintBoundary
+
+Wrap any widget in a `RepaintBoundary` and capture it:
+
+```dart
+final GlobalKey previewKey = GlobalKey();
+
+// In your widget tree:
+RepaintBoundary(
+  key: previewKey,
+  child: /* your preview widget */,
+);
+
+// Apply it:
+final result = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
+  previewKey,
+  WallpaperTarget.home,
+  pixelRatio: 2.5, // optional capture resolution
+);
+```
+
+### Set both screens
+
+```dart
+final result = await WallpaperPlugin.setWallpaperFromBytes(
+  bytes,
+  target: WallpaperTarget.both,
+);
+```
+
+### Optional image fitting
+
+Avoid distortion by scaling before the wallpaper is applied:
+
+```dart
+final result = await WallpaperPlugin.setWallpaperFromFile(
+  file,
+  target: WallpaperTarget.both,
+  fit: WallpaperFit.cover, // cover (default) | contain | fill
+);
+```
+
+- `WallpaperFit.cover` — fills the screen, center-crops overflow *(recommended for wallpapers)*
+- `WallpaperFit.contain` — fits entirely inside the screen with black letterbox bars
+- `WallpaperFit.fill` — stretches to exactly fill the screen (may distort)
+
+When `fit` is omitted the image is passed to the platform unscaled.
+
+### Share / Use As (iOS and Android)
+
+```dart
+final result = await WallpaperPlugin.useAsImageFromRepaintBoundary(previewKey);
+```
+
+Opens the system share sheet so the user can save the image to Photos (then set it manually). This is the primary iOS flow.
+
+---
+
+## Error Handling
+
+Every operation returns a `WallpaperResult` instead of throwing:
+
+```dart
+class WallpaperResult {
+  final bool isSuccess;
+  final WallpaperError? error;
+  final String? message;
+}
+```
+
+```dart
+final result = await WallpaperPlugin.setWallpaperFromUrl(url, target: WallpaperTarget.home);
+switch (result.error) {
+  case WallpaperError.unsupported:
+    // Platform cannot do this (e.g. iOS).
+  case WallpaperError.invalidImage:
+    // Bytes/file could not be decoded.
+  case WallpaperError.permissionDenied:
+  case WallpaperError.networkError:
+  case WallpaperError.fileError:
+  case WallpaperError.platformError:
+  case WallpaperError.unknown:
+    // ...
+  case null:
+    // No error.
+}
+```
+
+Expected failures (missing files, bad URLs, unsupported platforms) return a structured failure — they never throw or crash.
+
+---
+
+## Capabilities
+
+```dart
+final capabilities = await WallpaperPlugin.getCapabilities();
+```
+
+| Field | Meaning |
+| --- | --- |
+| `supportsHome` | Can set the home screen wallpaper |
+| `supportsLock` | Can set the lock screen wallpaper |
+| `supportsBoth` | Can set both together |
+| `supportsCapturedWidget` | Can set a wallpaper from a `RepaintBoundary` |
+| `supportsDirectImageSources` | Can set a wallpaper from file/URL/bytes |
+| `supportsWallpaperSetting` | Any of the above (convenience) |
+
+Capabilities are only ever reported as `true` when the platform genuinely provides the behavior.
+
+---
+
+## Screen Information
+
+```dart
+final info = await WallpaperPlugin.getScreenInfo();
+print('${info.width}x${info.height} @ ${info.pixelDensity} ${info.orientation}');
+```
+
+`width`, `height`, `pixelDensity` and `orientation` are `null` when a platform cannot provide them reliably.
+
+---
+
+## Supported Platforms
+
+| Feature | Android | iOS |
+| --- | --- | --- |
+| Home wallpaper | ✅ | ❌ (unsupported) |
+| Lock wallpaper | ✅ (Android 7.0+) | ❌ (unsupported) |
+| Both | ✅ (Android 7.0+) | ❌ (unsupported) |
+| RepaintBoundary source | ✅ | ❌ (unsupported) |
+| File / URL / bytes source | ✅ | ❌ (unsupported) |
+| `WallpaperFit` scaling | ✅ | n/a |
+| Use As... / share | ✅ | ✅ |
+| `getCapabilities` | ✅ | ✅ |
+| `getScreenInfo` | ✅ | ✅ |
+
+### Android limitations
+
+- Lock screen and "Both" targets require **Android 7.0 (API 24)** or newer. On older devices the plugin reports `WallpaperError.unsupported` for those targets.
+- Images are decoded with a size bound (~2× screen resolution) to keep memory usage predictable for very large images.
+- Widget capture is limited to the widget's on-screen size (`RepaintBoundary.toImage`).
+
+### iOS limitations
+
+- iOS does **not** allow third-party apps to set wallpapers programmatically. `setWallpaperFromFile/Url/Bytes/RepaintBoundary` return `WallpaperError.unsupported` and never pretend to succeed.
+- Use `useAsImageFromRepaintBoundary` to open the share sheet so the user can save and set the image manually.
+- The package never crashes on iOS — unsupported operations are safe to call.
+
+---
+
+## Migration Guide 1.0.x → 2.0.0
+
+v2.0.0 is an intentional, documented breaking release. Most changes are mechanical.
+
+### 1. Targets use an enum instead of strings
+
+```diff
+- final bool ok = await WallpaperPlugin.setWallpaperFromRepaintBoundary(
+-   previewKey, "home");
++ final WallpaperResult result =
++     await WallpaperPlugin.setWallpaperFromRepaintBoundary(
++       previewKey,
++       WallpaperTarget.home,
++     );
+```
+
+`"home"`, `"lock"`, `"both"` became `WallpaperTarget.home`, `WallpaperTarget.lock`, `WallpaperTarget.both`.
+
+### 2. Results are structured, not `bool`
+
+```diff
+- final bool ok = await WallpaperPlugin.setWallpaperFromRepaintBoundary(...);
+- if (ok) { ... }
++ final WallpaperResult result = await WallpaperPlugin.setWallpaperFromRepaintBoundary(...);
++ if (result.isSuccess) { ... } else { print(result.error?.name); }
+```
+
+All operations now return `Future<WallpaperResult>` instead of `Future<bool>`.
+
+### 3. New image-source methods
+
+```dart
+WallpaperPlugin.setWallpaperFromFile(file, target: ...);
+WallpaperPlugin.setWallpaperFromUrl(url, target: ...);
+WallpaperPlugin.setWallpaperFromBytes(bytes, target: ...);
+```
+
+### 4. Removed API
+
+- `WallpaperPlugin.getPlatformVersion()` — removed (unrelated to the plugin's purpose). Use `getCapabilities()` / `getScreenInfo()` instead.
+
+### 5. Capability-aware UI
+
+```diff
++ final caps = await WallpaperPlugin.getCapabilities();
++ if (caps.supportsLock) { /* show lock-button */ }
+```
+
+### 6. Fun fact — the call pattern is the same
+
+Only the return type and target type changed; the method name and arguments layout are otherwise unchanged.
+
+### Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## Example App
+
+Check the `example/` directory for a complete app demonstrating:
+
+- Image grid (network + bundled demo file)
+- Preview with zoom / pan
+- Set as Home / Lock / Both
+- Set from URL and File flows
+- Loading and error states
+- Platform-aware UI via `getCapabilities()`
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
