@@ -11,7 +11,7 @@ A Flutter plugin for setting wallpapers (Android) and sharing/using images (iOS)
   s.source           = { :path => '.' }
   s.source_files = 'wallpaper_setter/Sources/wallpaper_setter/**/*'
   s.dependency 'Flutter'
-  s.platform = :ios, '12.0'
+  s.platform = :ios, '13.0'
 
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'

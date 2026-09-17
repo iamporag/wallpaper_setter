@@ -10,7 +10,8 @@
 
 ### Platform tooling
 
-- **iOS**: adopted the modern Swift Package Manager layout (`ios/wallpaper_setter/Package.swift` + `Sources/wallpaper_setter/`) alongside the existing CocoaPods podspec, so both dependency managers are supported. The privacy manifest is now bundled for both.
+- **iOS**: adopted the modern Swift Package Manager layout (`ios/wallpaper_setter/Package.swift` + `Sources/wallpaper_setter/`), fully wired to Flutter's `FlutterFramework` package, alongside the existing CocoaPods podspec, so both dependency managers are supported. The privacy manifest is now bundled for both. Verified by enabling Swift Package Manager for the example app (`example/pubspec.yaml` → `flutter.config.enable-swift-package-manager`) and building it end to end.
+- **iOS**: raised the minimum deployment target from 12.0 to 13.0 (podspec and `Package.swift`). This fixes a real bug the stricter SPM build surfaced: `getScreenInfo()`'s orientation lookup used `UIWindowScene.interfaceOrientation`, which requires iOS 13+, but was declared as supporting iOS 12.
 - **Android**: removed the legacy `kotlin-android` plugin application / `ext.kotlin_version` / `kotlinOptions` in favor of the modern `kotlin { compilerOptions {} }` configuration block.
 - Removed stray example-app-shaped files (`ios/Runner`, `ios/Podfile`, `ios/Assets`) that were mistakenly committed at the plugin's `ios/` root and had no purpose there.
 
