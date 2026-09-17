@@ -1,21 +1,27 @@
 PODS:
   - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
   - wallpaper_setter (2.0.0):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - wallpaper_setter (from `.symlinks/plugins/wallpaper_setter/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
   wallpaper_setter:
     :path: ".symlinks/plugins/wallpaper_setter/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
-  wallpaper_setter: 4e657a78e84ce2cdf1d26e18fad364ed1e29e600
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  wallpaper_setter: e229acac79c38117b07966cf9ad76d04de09dc22
 
 PODFILE CHECKSUM: 3ba3a73b1b12adcf321a227a745625fe0888cc82
 

@@ -114,27 +114,15 @@ enum WallpaperError {
 
 /// The outcome of a wallpaper operation.
 class WallpaperResult {
-  const WallpaperResult._({
-    required this.isSuccess,
-    this.error,
-    this.message,
-  });
+  const WallpaperResult._({required this.isSuccess, this.error, this.message});
 
   /// A successful result with an optional human readable [message].
   const WallpaperResult.success({String? message})
-      : this._(
-          isSuccess: true,
-          error: null,
-          message: message,
-        );
+    : this._(isSuccess: true, error: null, message: message);
 
   /// A failed result describing the [error] that occurred.
   const WallpaperResult.failure(WallpaperError error, {String? message})
-      : this._(
-          isSuccess: false,
-          error: error,
-          message: message,
-        );
+    : this._(isSuccess: false, error: error, message: message);
 
   /// Whether the operation completed successfully.
   final bool isSuccess;
@@ -216,15 +204,16 @@ class WallpaperCapabilities {
 
   @override
   int get hashCode => Object.hash(
-        supportsHome,
-        supportsLock,
-        supportsBoth,
-        supportsCapturedWidget,
-        supportsDirectImageSources,
-      );
+    supportsHome,
+    supportsLock,
+    supportsBoth,
+    supportsCapturedWidget,
+    supportsDirectImageSources,
+  );
 
   @override
-  String toString() => 'WallpaperCapabilities('
+  String toString() =>
+      'WallpaperCapabilities('
       'home: $supportsHome, lock: $supportsLock, both: $supportsBoth, '
       'capturedWidget: $supportsCapturedWidget, directImageSources: $supportsDirectImageSources)';
 }
@@ -282,7 +271,8 @@ class WallpaperScreenInfo {
   final String? orientation;
 
   @override
-  String toString() => 'WallpaperScreenInfo('
+  String toString() =>
+      'WallpaperScreenInfo('
       'width: $width, height: $height, pixelDensity: $pixelDensity, '
       'orientation: $orientation)';
 }

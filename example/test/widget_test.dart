@@ -30,6 +30,9 @@ void main() {
     // In a widget test the platform channel is unavailable, so capabilities
     // report "none" and the app shows the platform-aware fallback UI.
     expect(find.text('Use As...'), findsOneWidget);
-    expect(find.textContaining('cannot be set programmatically'), findsOneWidget);
+    expect(
+      find.textContaining('cannot be set programmatically'),
+      findsOneWidget,
+    );
   });
 }
