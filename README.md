@@ -2,6 +2,10 @@
 
 A lightweight Flutter plugin for **setting device wallpapers** and **using images as wallpapers / shares**.
 
+# Demo
+
+![Demo Animation](https://raw.githubusercontent.com/iamporag/wallpaper_setter/main/assets/demo.gif)
+
 `wallpaper_setter` turns your image sources — **file**, **URL**, **raw bytes**, or a captured **RepaintBoundary** — into a device wallpaper with a simple, type-safe API.
 
 - ✅ **Android** — set Home screen, Lock screen, or Both
@@ -231,17 +235,22 @@ print('${info.width}x${info.height} @ ${info.pixelDensity} ${info.orientation}')
 
 ## Supported Platforms
 
-| Feature | Android | iOS |
-| --- | --- | --- |
-| Home wallpaper | ✅ | ❌ (unsupported) |
-| Lock wallpaper | ✅ (Android 7.0+) | ❌ (unsupported) |
-| Both | ✅ (Android 7.0+) | ❌ (unsupported) |
-| RepaintBoundary source | ✅ | ❌ (unsupported) |
-| File / URL / bytes source | ✅ | ❌ (unsupported) |
-| `WallpaperFit` scaling | ✅ | n/a |
-| Use As... / share | ✅ | ✅ |
-| `getCapabilities` | ✅ | ✅ |
-| `getScreenInfo` | ✅ | ✅ |
+| Feature | Android | iOS | Windows / macOS / Linux / Web |
+| --- | --- | --- | --- |
+| Home wallpaper | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| Lock wallpaper | ✅ (Android 7.0+) | ❌ (unsupported) | ❌ (unsupported) |
+| Both | ✅ (Android 7.0+) | ❌ (unsupported) | ❌ (unsupported) |
+| RepaintBoundary source | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| File / URL / bytes source | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| `WallpaperFit` scaling | ✅ | n/a | n/a |
+| Use As... / share | ✅ | ✅ | ❌ (unsupported) |
+| `getCapabilities` | ✅ | ✅ | ✅ |
+| `getScreenInfo` | ✅ | ✅ | ✅ |
+
+Windows, macOS, Linux, and Web have no native wallpaper-setting integration.
+The package registers a pure-Dart fallback on those platforms so the app
+still builds and runs everywhere — every call simply resolves with
+`WallpaperError.unsupported` instead of throwing.
 
 ### Android limitations
 

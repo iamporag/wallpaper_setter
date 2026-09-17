@@ -42,7 +42,8 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
     WallpaperFit? fit,
   }) {
     throw UnimplementedError(
-        'setWallpaperFromRepaintBoundary() has not been implemented.');
+      'setWallpaperFromRepaintBoundary() has not been implemented.',
+    );
   }
 
   /// Sets the wallpaper from an image [file].
@@ -51,7 +52,9 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
     WallpaperTarget target, {
     WallpaperFit? fit,
   }) {
-    throw UnimplementedError('setWallpaperFromFile() has not been implemented.');
+    throw UnimplementedError(
+      'setWallpaperFromFile() has not been implemented.',
+    );
   }
 
   /// Sets the wallpaper from a network [url].
@@ -76,7 +79,8 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
   /// returns `null` if it cannot be read.
   Future<Uint8List?> getImageBytesFromUri(String uri) {
     throw UnimplementedError(
-        'getImageBytesFromUri() has not been implemented.');
+      'getImageBytesFromUri() has not been implemented.',
+    );
   }
 
   /// Sets the wallpaper from raw image [bytes].
@@ -86,7 +90,8 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
     WallpaperFit? fit,
   }) {
     throw UnimplementedError(
-        'setWallpaperFromBytes() has not been implemented.');
+      'setWallpaperFromBytes() has not been implemented.',
+    );
   }
 
   /// Shares / uses an image captured from a [RepaintBoundary].
@@ -95,7 +100,8 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
     double pixelRatio = 2.5,
   }) {
     throw UnimplementedError(
-        'useAsImageFromRepaintBoundary() has not been implemented.');
+      'useAsImageFromRepaintBoundary() has not been implemented.',
+    );
   }
 
   /// Returns basic screen / wallpaper information when reliably available.
@@ -112,6 +118,7 @@ abstract class WallpaperPluginPlatform extends PlatformInterface {
   /// should override this.
   void setIncomingWallpaperHandler(IncomingWallpaperCallback? handler) {
     throw UnimplementedError(
-        'setIncomingWallpaperHandler() has not been implemented.');
+      'setIncomingWallpaperHandler() has not been implemented.',
+    );
   }
 }

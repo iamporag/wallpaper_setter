@@ -440,25 +440,22 @@ class _PreviewScreenState extends State<PreviewScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: RepaintBoundary(
-              key: previewContainer,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox.expand(
-                  child:
-                      _imageProvider == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : PhotoView(
-                            imageProvider: _imageProvider!,
-                            backgroundDecoration: const BoxDecoration(
-                              color: Colors.black,
-                            ),
-                            minScale: PhotoViewComputedScale.contained,
-                            maxScale: PhotoViewComputedScale.covered * 2,
+          RepaintBoundary(
+            key: previewContainer,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox.expand(
+                child:
+                    _imageProvider == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : PhotoView(
+                          imageProvider: _imageProvider!,
+                          backgroundDecoration: const BoxDecoration(
+                            color: Colors.black,
                           ),
-                ),
+                          minScale: PhotoViewComputedScale.contained,
+                          maxScale: PhotoViewComputedScale.covered * 2,
+                        ),
               ),
             ),
           ),
