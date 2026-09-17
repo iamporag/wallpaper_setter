@@ -190,10 +190,7 @@ void main() {
   test('public API exposes result/error types', () {
     expect(WallpaperTarget.values, hasLength(3));
     expect(WallpaperError.values, contains(WallpaperError.unknown));
-    expect(
-      WallpaperResult.success(),
-      isA<WallpaperResult>(),
-    );
+    expect(WallpaperResult.success(), isA<WallpaperResult>());
     expect(WallpaperCapabilities.none, isA<WallpaperCapabilities>());
   });
 }

@@ -53,8 +53,11 @@ class WallpaperPlugin {
     WallpaperTarget target, {
     WallpaperFit? fit,
   }) {
-    return WallpaperPluginPlatform.instance
-        .setWallpaperFromFile(file, target, fit: fit);
+    return WallpaperPluginPlatform.instance.setWallpaperFromFile(
+      file,
+      target,
+      fit: fit,
+    );
   }
 
   /// Sets the wallpaper from a network [url] pointing to an image.
@@ -65,8 +68,11 @@ class WallpaperPlugin {
     WallpaperTarget target, {
     WallpaperFit? fit,
   }) {
-    return WallpaperPluginPlatform.instance
-        .setWallpaperFromUrl(url, target, fit: fit);
+    return WallpaperPluginPlatform.instance.setWallpaperFromUrl(
+      url,
+      target,
+      fit: fit,
+    );
   }
 
   /// Sets the wallpaper from a `content://` [uri] supplied by an external app
@@ -78,8 +84,11 @@ class WallpaperPlugin {
     WallpaperTarget target, {
     WallpaperFit? fit,
   }) {
-    return WallpaperPluginPlatform.instance
-        .setWallpaperFromUri(uri, target, fit: fit);
+    return WallpaperPluginPlatform.instance.setWallpaperFromUri(
+      uri,
+      target,
+      fit: fit,
+    );
   }
 
   /// Reads the encoded image bytes referenced by a `content://` [uri] that was
@@ -98,8 +107,11 @@ class WallpaperPlugin {
     WallpaperTarget target, {
     WallpaperFit? fit,
   }) {
-    return WallpaperPluginPlatform.instance
-        .setWallpaperFromBytes(bytes, target, fit: fit);
+    return WallpaperPluginPlatform.instance.setWallpaperFromBytes(
+      bytes,
+      target,
+      fit: fit,
+    );
   }
 
   /// Shares / uses an image captured from a [RepaintBoundary].
@@ -129,7 +141,6 @@ class WallpaperPlugin {
   /// valid. Read the bytes promptly and do not try to convert the URI into a
   /// filesystem path. Pass `null` to stop receiving callbacks.
   static void setIncomingWallpaperHandler(IncomingWallpaperCallback? callback) {
-    WallpaperPluginPlatform.instance
-        .setIncomingWallpaperHandler(callback);
+    WallpaperPluginPlatform.instance.setIncomingWallpaperHandler(callback);
   }
 }

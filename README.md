@@ -231,17 +231,22 @@ print('${info.width}x${info.height} @ ${info.pixelDensity} ${info.orientation}')
 
 ## Supported Platforms
 
-| Feature | Android | iOS |
-| --- | --- | --- |
-| Home wallpaper | ✅ | ❌ (unsupported) |
-| Lock wallpaper | ✅ (Android 7.0+) | ❌ (unsupported) |
-| Both | ✅ (Android 7.0+) | ❌ (unsupported) |
-| RepaintBoundary source | ✅ | ❌ (unsupported) |
-| File / URL / bytes source | ✅ | ❌ (unsupported) |
-| `WallpaperFit` scaling | ✅ | n/a |
-| Use As... / share | ✅ | ✅ |
-| `getCapabilities` | ✅ | ✅ |
-| `getScreenInfo` | ✅ | ✅ |
+| Feature | Android | iOS | Windows / macOS / Linux / Web |
+| --- | --- | --- | --- |
+| Home wallpaper | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| Lock wallpaper | ✅ (Android 7.0+) | ❌ (unsupported) | ❌ (unsupported) |
+| Both | ✅ (Android 7.0+) | ❌ (unsupported) | ❌ (unsupported) |
+| RepaintBoundary source | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| File / URL / bytes source | ✅ | ❌ (unsupported) | ❌ (unsupported) |
+| `WallpaperFit` scaling | ✅ | n/a | n/a |
+| Use As... / share | ✅ | ✅ | ❌ (unsupported) |
+| `getCapabilities` | ✅ | ✅ | ✅ |
+| `getScreenInfo` | ✅ | ✅ | ✅ |
+
+Windows, macOS, Linux, and Web have no native wallpaper-setting integration.
+The package registers a pure-Dart fallback on those platforms so the app
+still builds and runs everywhere — every call simply resolves with
+`WallpaperError.unsupported` instead of throwing.
 
 ### Android limitations
 

@@ -17,7 +17,9 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
 
   /// Native → Dart channel used to deliver an incoming image URI from an
   /// external "Use as → Wallpaper" intent.
-  final incomingChannel = const MethodChannel('com.iamporag/wallpaper_incoming');
+  final incomingChannel = const MethodChannel(
+    'com.iamporag/wallpaper_incoming',
+  );
 
   IncomingWallpaperCallback? _incomingCallback;
 
@@ -62,9 +64,11 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
         return null;
       default:
         throw MissingPluginException(
-            'No handler for incoming method ${call.method}');
+          'No handler for incoming method ${call.method}',
+        );
     }
   }
+
   @override
   Future<WallpaperCapabilities> getCapabilities() async {
     try {
@@ -181,8 +185,8 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
     WallpaperFit? fit,
   }) async {
     try {
-      final raw =
-          await methodChannel.invokeMethod<dynamic>('setWallpaperFromUri', {
+      final raw = await methodChannel
+          .invokeMethod<dynamic>('setWallpaperFromUri', {
             'uri': uri,
             'target': target.nativeValue,
             if (fit != null) 'fit': fit.nativeValue,
@@ -392,9 +396,9 @@ class MethodChannelWallpaperPlugin extends WallpaperPluginPlatform {
           message: 'Failed to download image (HTTP ${response.statusCode}).',
         );
       }
-      final body = await consolidateHttpClientResponseBytes(response).timeout(
-        _downloadTimeout,
-      );
+      final body = await consolidateHttpClientResponseBytes(
+        response,
+      ).timeout(_downloadTimeout);
       if (body.isEmpty) {
         throw const WallpaperResult.failure(
           WallpaperError.networkError,
