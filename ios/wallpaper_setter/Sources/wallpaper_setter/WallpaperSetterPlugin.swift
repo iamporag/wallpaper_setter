@@ -48,8 +48,27 @@ public class WallpaperSetterPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    /// Returns the foreground-active `UIWindowScene`, falling back to the first
+    /// connected scene. Uses the scene API instead of the deprecated
+    /// `UIApplication.shared.windows` and handles multiple scenes by preferring
+    /// the active one. `connectedScenes` is available from iOS 13, which is the
+    /// plugin's minimum deployment target, so no availability fallback is
+    /// required.
+    private func activeWindowScene() -> UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+    }
+
+    /// Returns the key window of the active scene, falling back to the scene's
+    /// first window. Preferring the key window avoids assuming `windows.first`
+    /// is the Flutter window when a scene hosts more than one window.
+    private func activeWindow() -> UIWindow? {
+        guard let scene = activeWindowScene() else { return nil }
+        return scene.windows.first { $0.isKeyWindow } ?? scene.windows.first
+    }
+
     private func orientationName() -> String {
-        let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation
+        let orientation = activeWindowScene()?.interfaceOrientation
         switch orientation {
         case .landscapeLeft, .landscapeRight:
             return "landscape"
@@ -65,7 +84,7 @@ public class WallpaperSetterPlugin: NSObject, FlutterPlugin {
         }
         let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
 
-        guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
+        guard let rootVC = activeWindow()?.rootViewController else {
             result(successMap(success: false, error: "platformError", message: "No root view controller found"))
             return
         }

@@ -2,6 +2,10 @@
 
 A lightweight Flutter plugin for **setting device wallpapers** and **using images as wallpapers / shares**.
 
+# Demo
+
+![Demo Animation](https://raw.githubusercontent.com/iamporag/wallpaper_setter/main/assets/demo.gif)
+
 `wallpaper_setter` turns your image sources — **file**, **URL**, **raw bytes**, or a captured **RepaintBoundary** — into a device wallpaper with a simple, type-safe API.
 
 - ✅ **Android** — set Home screen, Lock screen, or Both

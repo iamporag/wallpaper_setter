@@ -254,4 +254,191 @@ void main() {
     expect(result.error, WallpaperError.permissionDenied);
     expect(result.message, 'blocked');
   });
+
+  // ---------------------------------------------------------------------------
+  // setWallpaperFromUri
+  // ---------------------------------------------------------------------------
+
+  test('setWallpaperFromUri invokes native method with uri and target', () async {
+    late MethodCall seen;
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          seen = call;
+          return {'isSuccess': true, 'message': 'Wallpaper set successfully.'};
+        });
+
+    final result = await plugin.setWallpaperFromUri(
+      'content://media/external/images/1',
+      WallpaperTarget.lock,
+    );
+
+    expect(seen.method, 'setWallpaperFromUri');
+    expect(seen.arguments['uri'], 'content://media/external/images/1');
+    expect(seen.arguments['target'], 'lock');
+    expect(seen.arguments.containsKey('fit'), isFalse);
+    expect(result.isSuccess, isTrue);
+    expect(result.error, isNull);
+  });
+
+  test('setWallpaperFromUri forwards target and fit when provided', () async {
+    late Map<Object?, Object?> args;
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          args = call.arguments as Map<Object?, Object?>;
+          return {'isSuccess': true};
+        });
+
+    await plugin.setWallpaperFromUri(
+      'content://media/external/images/2',
+      WallpaperTarget.both,
+      fit: WallpaperFit.contain,
+    );
+
+    expect(args['uri'], 'content://media/external/images/2');
+    expect(args['target'], 'both');
+    expect(args['fit'], 'contain');
+  });
+
+  test('setWallpaperFromUri maps a native failure map', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          return {
+            'isSuccess': false,
+            'error': 'invalidImage',
+            'message': 'Unable to decode image from URI',
+          };
+        });
+
+    final result = await plugin.setWallpaperFromUri(
+      'content://media/external/images/3',
+      WallpaperTarget.home,
+    );
+
+    expect(result.isSuccess, isFalse);
+    expect(result.error, WallpaperError.invalidImage);
+    expect(result.message, 'Unable to decode image from URI');
+  });
+
+  test('setWallpaperFromUri surfaces an empty URI to the platform', () async {
+    late Map<Object?, Object?> args;
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          args = call.arguments as Map<Object?, Object?>;
+          return {
+            'isSuccess': false,
+            'error': 'invalidImage',
+            'message': 'Image URI is null',
+          };
+        });
+
+    final result = await plugin.setWallpaperFromUri('', WallpaperTarget.home);
+
+    expect(args['uri'], '');
+    expect(result.isSuccess, isFalse);
+    expect(result.error, WallpaperError.invalidImage);
+  });
+
+  test(
+    'setWallpaperFromUri maps PlatformException to the matching error',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+            throw PlatformException(
+              code: 'PERMISSION_DENIED',
+              message: 'denied',
+            );
+          });
+
+      final result = await plugin.setWallpaperFromUri(
+        'content://media/external/images/4',
+        WallpaperTarget.home,
+      );
+
+      expect(result.isSuccess, isFalse);
+      expect(result.error, WallpaperError.permissionDenied);
+      expect(result.message, 'denied');
+    },
+  );
+
+  test('setWallpaperFromUri falls back to platformError on non-map', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          return true;
+        });
+
+    final result = await plugin.setWallpaperFromUri(
+      'content://media/external/images/5',
+      WallpaperTarget.home,
+    );
+
+    expect(result.isSuccess, isFalse);
+    expect(result.error, WallpaperError.platformError);
+    expect(result.message, 'Failed to set wallpaper from URI.');
+  });
+
+  // ---------------------------------------------------------------------------
+  // getImageBytesFromUri
+  // ---------------------------------------------------------------------------
+
+  test('getImageBytesFromUri returns the bytes from the platform', () async {
+    final payload = Uint8List.fromList([9, 8, 7, 6]);
+    late Map<Object?, Object?> args;
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          args = call.arguments as Map<Object?, Object?>;
+          return payload;
+        });
+
+    final result = await plugin.getImageBytesFromUri(
+      'content://media/external/images/10',
+    );
+
+    expect(args['uri'], 'content://media/external/images/10');
+    expect(result, isNotNull);
+    expect(result, equals(payload));
+  });
+
+  test(
+    'getImageBytesFromUri returns null for an empty platform response',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+            return null;
+          });
+
+      final result = await plugin.getImageBytesFromUri(
+        'content://media/external/images/11',
+      );
+
+      expect(result, isNull);
+    },
+  );
+
+  test('getImageBytesFromUri returns null on PlatformException', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall call) async {
+          throw PlatformException(code: 'UNAVAILABLE', message: 'gone');
+        });
+
+    final result = await plugin.getImageBytesFromUri(
+      'content://media/external/images/12',
+    );
+
+    expect(result, isNull);
+  });
+
+  test('getImageBytesFromUri returns null on MissingPluginException', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+
+    final result = await plugin.getImageBytesFromUri(
+      'content://media/external/images/13',
+    );
+
+    expect(result, isNull);
+  });
 }

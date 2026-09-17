@@ -9,6 +9,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -29,6 +31,7 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
     private var activityContext: Context? = null
     private lateinit var incomingChannel: MethodChannel
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -170,7 +173,7 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
 
         executor.execute {
             val bitmap = loadBitmap(path) ?: run {
-                result.success(errorMap("invalidImage", "Unable to decode image"))
+                postResult(result, errorMap("invalidImage", "Unable to decode image"))
                 return@execute
             }
             applyBitmapWallpaper(bitmap, target, fit, result)
@@ -196,7 +199,7 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
 
         executor.execute {
             val bitmap = loadBitmapFromUri(uri) ?: run {
-                result.success(errorMap("invalidImage", "Unable to decode image from URI"))
+                postResult(result, errorMap("invalidImage", "Unable to decode image from URI"))
                 return@execute
             }
 
@@ -217,7 +220,7 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
         val uri = Uri.parse(uriString)
         executor.execute {
             val bytes = readBytesFromUri(uri)
-            result.success(bytes)
+            postResult(result, bytes)
         }
     }
 
@@ -252,7 +255,7 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
     ) {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N && target != null && target != "home") {
-                result.success(errorMap("unsupported", "Lock screen wallpaper requires Android 7.0+"))
+                postResult(result, errorMap("unsupported", "Lock screen wallpaper requires Android 7.0+"))
                 return
             }
 
@@ -278,20 +281,20 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
                 bitmap.recycle()
             }
 
-            result.success(successMap("Wallpaper set successfully."))
+            postResult(result, successMap("Wallpaper set successfully."))
         } catch (e: SecurityException) {
-            result.success(errorMap("permissionDenied", "Permission denied: ${e.message}"))
+            postResult(result, errorMap("permissionDenied", "Permission denied: ${e.message}"))
         } catch (e: IOException) {
-            result.success(errorMap("platformError", "Failed to set wallpaper: ${e.message}"))
+            postResult(result, errorMap("platformError", "Failed to set wallpaper: ${e.message}"))
         } catch (e: AccessControlException) {
-            result.success(errorMap("permissionDenied", "Permission denied: ${e.message}"))
+            postResult(result, errorMap("permissionDenied", "Permission denied: ${e.message}"))
         } catch (e: OutOfMemoryError) {
             // OutOfMemoryError is an Error, not an Exception, so it must be
             // caught explicitly to avoid crashing the process on low-memory
             // devices when a large wallpaper image is decoded.
-            result.success(errorMap("platformError", "Insufficient memory to set wallpaper"))
+            postResult(result, errorMap("platformError", "Insufficient memory to set wallpaper"))
         } catch (e: Exception) {
-            result.success(errorMap("platformError", "Unexpected error: ${e.message}"))
+            postResult(result, errorMap("platformError", "Unexpected error: ${e.message}"))
         }
     }
 
@@ -322,11 +325,16 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
             }
 
             val chooser = Intent.createChooser(intent, "Use image as").apply {
-    putExtra(
-        Intent.EXTRA_EXCLUDE_COMPONENTS,
-        arrayOf(android.content.ComponentName(context, "com.yourcompany.wallpaper_plugin_example.MainActivity"))
-    )
-}
+                putExtra(
+                    Intent.EXTRA_EXCLUDE_COMPONENTS,
+                    arrayOf(
+                        android.content.ComponentName(
+                            context,
+                            "${context.packageName}.MainActivity",
+                        ),
+                    ),
+                )
+            }
 
             // Launch from the current Activity context *without*
             // FLAG_ACTIVITY_NEW_TASK so Android keeps the app's task/back stack
@@ -455,6 +463,16 @@ class WallpaperSetterPlugin : FlutterPlugin, ActivityAware, MethodChannel.Method
             }
             else -> Bitmap.createScaledBitmap(source, target.width, target.height, true)
         }
+    }
+
+    /**
+     * Delivers a `MethodChannel.Result` on the Android main thread. Methods that
+     * run on [executor] must use this instead of calling `result.success`
+     * directly, because Flutter requires channel callbacks on the platform
+     * thread.
+     */
+    private fun postResult(result: MethodChannel.Result, value: Any?) {
+        mainHandler.post { result.success(value) }
     }
 
     private fun successMap(message: String): Map<String, Any> =
